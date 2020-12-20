@@ -22,7 +22,7 @@ class EndException : public std::exception {
 
 template <typename V, typename W>
 class Graph {
-
+public:
     class VertIterator : std::iterator<std::input_iterator_tag, V> {
     public:
         VertIterator(const VertIterator &it) :
@@ -41,7 +41,7 @@ class Graph {
             return *this;
         }
 
-        virtual typename VertIterator::reference operator*() const {
+        virtual V& operator*() const {
             return *pointer;
         }
 
@@ -78,7 +78,7 @@ class Graph {
             return pointer == other.pointer;
         }
 
-        typename EdgeIterator::reference operator*() const {
+        V& operator*() const {
             return *pointer;
         }
 
@@ -133,6 +133,10 @@ public:
         return *this;
     }
 
+    V& operator[] (int index) {
+        return vertices[index];
+    }
+
     void add_vertex(V& new_vertex) {
         vertices.push_back(new_vertex);
         std::pair<bool, W> null_edge = std::make_pair(false, NULL);
@@ -146,6 +150,11 @@ public:
         if (!change && matrix_edges[from][to].first)
             return ;
         matrix_edges[from][to] = std::make_pair(true, weight);
+    }
+
+    void delete_children_edges (int parent) {
+        std::pair<bool, W> null_edge = std::make_pair(false, NULL);
+        matrix_edges[parent] = std::vector<std::pair<bool, W>>(vertices.size(), null_edge);
     }
 
     size_t vertices_count() {
@@ -196,7 +205,7 @@ public:
             throw CompareException();
         }
 
-        typename DFS_MatrixVertIterator::reference operator*() const {
+        V& operator*() const {
             return *pointer;
         }
 
@@ -280,7 +289,7 @@ public:
             throw CompareException();
         }
 
-        typename BFS_MatrixVertIterator::reference operator*() const {
+        V& operator*() const {
             return *pointer;
         }
 
@@ -390,6 +399,10 @@ public:
         return *this;
     }
 
+    V& operator[] (int index) {
+        return vertices[index];
+    }
+
     /*explicit operator MatrixGraph<V, W>() const{
         size_t n = vertices.size();
         std::pair<bool, W> null_edge = std::make_pair(false, NULL);
@@ -417,6 +430,10 @@ public:
             }
         }
         list_edges[from].push_back(std::make_pair(to, weight));
+    }
+
+    void delete_children_edges (int parent) {
+        list_edges[parent].clear();
     }
 
     size_t vertices_count() {
@@ -462,7 +479,7 @@ public:
             throw CompareException();
         }
 
-        typename DFS_ListVertIterator::reference operator*() const {
+        V& operator*() const {
             return *pointer;
         }
 
@@ -547,7 +564,7 @@ public:
             throw CompareException();
         }
 
-        typename BFS_ListVertIterator::reference operator*() const {
+        V& operator*() const {
             return *pointer;
         }
 
@@ -673,8 +690,12 @@ public:
         return *this;
     }
 
-    void add_vertex(Vertex* new_vertex) {
-        vertices.push_back(new_vertex);
+    V& operator[] (int index) {
+        return vertices[index]->object;
+    }
+
+    void add_vertex(V& new_vertex) {
+        vertices.push_back(new Vertex(new_vertex));
     }
 
     void add_edge(Vertex* from, Vertex* to, W& weight=NULL, bool change=true) {
@@ -684,6 +705,18 @@ public:
                 return;
             }
         }
+    }
+
+    void add_edge(int from, int to, W& weight=NULL, bool change=true) {
+        add_edge(vertices[from], vertices[to], weight, change);
+    }
+
+    void delete_children_edges (Vertex* parent) {
+        parent->next_vertices.clear();
+    }
+
+    void delete_children_edges (int parent) {
+        delete_children_edges(vertices[parent]);
     }
 
     size_t vertices_count() {
@@ -702,7 +735,7 @@ public:
 
     class NodeVertIterator : public Graph<V, W>::VertIterator {
     public:
-        typename NodeVertIterator::reference operator*() const {
+        V& operator*() const {
             return pointer->object;
         }
     private:
@@ -736,7 +769,7 @@ public:
             throw CompareException();
         }
 
-        typename DFS_NodeVertIterator::reference operator*() const {
+        V& operator*() const {
             return pointer->object;
         }
 
@@ -822,7 +855,7 @@ public:
             throw CompareException();
         }
 
-        typename BFS_NodeVertIterator::reference operator*() const {
+        V& operator*() const {
             return pointer->object;
         }
 
@@ -931,12 +964,27 @@ public:
         return *this;
     }
 
+    V& operator[] (int index) {
+        return vertices[index];
+    }
+
     void add_vertex(V& new_vertex) {
         vertices.push_back(new_vertex);
     }
 
     void add_edge(int from, int to, W& weight=NULL) {
         set_edges.push_back(std::make_pair(std::make_pair(from, to), weight));
+    }
+
+    void delete_children_edges (int parent) {
+        for (auto it = set_edges.begin(); it != set_edges.end();) {
+            if (it->first.first == parent) {
+                it = set_edges.erase(it);
+            }
+            else {
+                it++;
+            }
+        }
     }
 
     size_t vertices_count() {
@@ -987,7 +1035,7 @@ public:
             throw CompareException();
         }
 
-        typename DFS_SetVertIterator::reference operator*() const {
+        V& operator*() const {
             return *pointer;
         }
 
@@ -1072,7 +1120,7 @@ public:
             throw CompareException();
         }
 
-        typename BFS_SetVertIterator::reference operator*() const {
+        V& operator*() const {
             return *pointer;
         }
 
